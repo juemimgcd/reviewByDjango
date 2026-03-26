@@ -25,11 +25,16 @@ class HistoryAddAPIView(APIView):
 
         news_id = serializer.validated_data["news_id"]
         news = get_news_detail(news_id=news_id)
-        if news is None:
-            raise NotFound("not found")
 
-        history = add_history(user=request.user, news=news)
-        return success_response(data=build_history_record(history=history))
+        if not news:
+            raise NotFound("news not found")
+
+        history = add_history(user=request.user,news=news)
+
+        return success_response(
+            data=build_history_record(history=history)
+        )
+
 
 
 class HistoryListAPIView(APIView):
@@ -39,19 +44,20 @@ class HistoryListAPIView(APIView):
     def get(self, request):
         query_serializer = HistoryListQuerySerializer(data=request.query_params)
         query_serializer.is_valid(raise_exception=True)
-
         page = query_serializer.validated_data["page"]
         page_size = query_serializer.validated_data["page_size"]
-        histories, total = list_histories(user=request.user, page=page, page_size=page_size)
+
+        history_list,total = list_histories(user=request.user)
 
         return success_response(
             data=build_history_list_response(
-                histories=histories,
+                histories=history_list,
                 total=total,
                 page=page,
-                page_size=page_size,
-            )
+                page_size=page_size
+                )
         )
+
 
 
 class HistoryDeleteAPIView(APIView):
@@ -59,9 +65,11 @@ class HistoryDeleteAPIView(APIView):
     authentication_classes = [BearerTokenAuthentication]
 
     def delete(self, request, history_id):
-        deleted = delete_history(user=request.user, history_id=history_id)
-        if not deleted:
-            raise NotFound("not found")
+        flag = delete_history(user=request.user,history_id=history_id)
+        
+        if not flag:
+            raise NotFound("history not found")
+        
         return success_response()
 
 
@@ -71,4 +79,6 @@ class HistoryClearAPIView(APIView):
 
     def delete(self, request):
         deleted_count = clear_history(user=request.user)
-        return success_response(data=build_history_clear_response(deleted_count=deleted_count))
+        return success_response(
+            data=build_history_clear_response(deleted_count=deleted_count)
+        )

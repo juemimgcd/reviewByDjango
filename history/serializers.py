@@ -4,27 +4,13 @@ from history.models import History
 
 
 class HistoryAddSerializer(serializers.Serializer):
-    newsId = serializers.IntegerField(source="news_id", min_value=1)
+    newsId = serializers.IntegerField(source="news_id",min_value=1)
+
 
 
 class HistoryNewsItemSerializer(serializers.ModelSerializer):
-    """
-    浏览历史列表中的新闻项数据。
-
-    需要字段：
-    - id: int，新闻 ID。
-    - title: str，新闻标题。
-    - description: str | None，新闻简介。
-    - image: str | None，新闻封面图片地址。
-    - author: str | None，新闻作者。
-    - categoryId: int，新闻分类 ID。
-    - views: int，新闻浏览量。
-    - publishTime: datetime，新闻发布时间。
-    - historyId: int，历史记录 ID。
-    - viewTime: datetime，最近浏览时间。
-    """
-    id = serializers.IntegerField(source="news.news_id")
-    title = serializers.CharField(source="news.title")
+    id = serializers.IntegerField(source="news_id",min_value=1,max_value=9999)
+    title= serializers.CharField(source="news.title")
     description = serializers.CharField(source="news.description", allow_null=True, required=False)
     image = serializers.CharField(source="news.image", allow_null=True, required=False)
     author = serializers.CharField(source="news.author", allow_null=True, required=False)
@@ -33,6 +19,7 @@ class HistoryNewsItemSerializer(serializers.ModelSerializer):
     publishTime = serializers.DateTimeField(source="news.publish_time")
     historyId = serializers.IntegerField(source="history_id")
     viewTime = serializers.DateTimeField(source="view_time")
+
 
     class Meta:
         model = History
@@ -50,25 +37,9 @@ class HistoryNewsItemSerializer(serializers.ModelSerializer):
         ]
 
 
-
-
-
 class HistoryListQuerySerializer(serializers.Serializer):
-    page = serializers.IntegerField(required=False, min_value=1, default=1)
-    pageSize = serializers.IntegerField(
-        source="page_size",
-        required=False,
-        min_value=1,
-        max_value=100,
-        default=10,
-    )
 
-
-
-
-
-
-
-
+    page = serializers.IntegerField(min_value=1,max_value=1000,default=1)
+    pageSize = serializers.IntegerField(source="page_size",required=False,min_value=1,max_value=20,default=10)
 
 

@@ -4,15 +4,20 @@ from favorite.models import Favorite
 
 
 class FavoriteCheckQuerySerializer(serializers.Serializer):
-    newsId = serializers.IntegerField(source="news_id", min_value=1)
+    """定义“检查是否收藏”接口需要的查询参数字段。"""
+    newsId = serializers.IntegerField(source="news_id")
+    pass
 
 
-class FavoriteRemoveQuerySerializer(serializers.Serializer):
-    newsId = serializers.IntegerField(source="news_id", min_value=1)
+class FavoriteRemoveQuerySerializer(FavoriteCheckQuerySerializer):
+    """定义“取消收藏”接口需要的查询参数字段。"""
+
+    pass
 
 
-class FavoriteAddSerializer(serializers.Serializer):
-    newsId = serializers.IntegerField(source="news_id", min_value=1)
+class FavoriteAddSerializer(FavoriteCheckQuerySerializer):
+    """定义“添加收藏”接口需要的请求体字段。"""
+    pass
 
 
 class FavoriteNewsItemSerializer(serializers.ModelSerializer):
