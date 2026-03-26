@@ -3,15 +3,12 @@ from rest_framework.views import APIView
 
 from utils.response import success_response
 
-from .serializers import (
-    CategoryQuerySerializer,
-    CategoryResponseSerializer,
-    NewsDetailQuerySerializer,
-    NewsDetailResponseSerializer,
-    NewsListQuerySerializer,
-    NewsListResponseSerializer,
-    RelatedNewsSerializer,
+from .assemblers import (
+    build_category_list_response,
+    build_news_detail_response,
+    build_news_list_response,
 )
+from .serializers import NewsDetailQuerySerializer, NewsListQuerySerializer, CategoryQuerySerializer
 from .services import (
     get_news_detail,
     get_news_total,
@@ -22,17 +19,13 @@ from .services import (
 )
 
 
-# Create your views here.
-
-
 class CategoryAPIView(APIView):
     def get(self, request):
         query_serializer = CategoryQuerySerializer(data=request.query_params)
         query_serializer.is_valid(raise_exception=True)
 
         categories = list_categories(**query_serializer.validated_data)
-        serializer = CategoryResponseSerializer(categories, many=True)
-        return success_response(data=serializer.data)
+        return success_response(data=build_category_list_response(categories))
 
 
 class NewsListAPIView(APIView):
@@ -48,11 +41,9 @@ class NewsListAPIView(APIView):
         news_items = list_news(category_id=category_id, skip=offset, limit=page_size)
         total = get_news_total(category_id=category_id)
 
-        resp_serializer = NewsListResponseSerializer({"list": news_items, "total": total or 0})
-
-        resp_data = resp_serializer.data
-        return success_response(data=resp_data)
-
+        return success_response(
+            data=build_news_list_response(news_items=news_items, total=total or 0)
+        )
 
 
 class NewsDetailAPIView(APIView):
@@ -70,10 +61,7 @@ class NewsDetailAPIView(APIView):
         related = get_related_news(category_id=detail.category_id, news_id=detail.id)
 
         return success_response(
-            data={
-                "detail": NewsDetailResponseSerializer(detail).data,
-                "related": RelatedNewsSerializer(related, many=True).data,
-            }
+            data=build_news_detail_response(detail=detail, related=related)
         )
 
 

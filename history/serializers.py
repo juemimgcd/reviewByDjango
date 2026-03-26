@@ -4,32 +4,7 @@ from history.models import History
 
 
 class HistoryAddSerializer(serializers.Serializer):
-    """
-    新增浏览历史接口的请求体。
-
-    需要字段：
-    - newsId: int，新闻主键 ID。
-    """
-    newsId = serializers.IntegerField(source="news.news_id",min_value=1)
-
-
-
-class HistoryRecordSerializer(serializers.Serializer):
-    """
-    浏览历史记录基础信息。
-
-    需要字段：
-    - id: int，历史记录 ID。
-    - userId: int，用户 ID。
-    - newsId: int，新闻 ID。
-    - viewTime: datetime，最近浏览时间。
-    """
-    id = serializers.IntegerField(source="history_id",min_value=1)
-    userId = serializers.IntegerField(source="users.user_id",min_value=1)
-    newsId = serializers.IntegerField(source="news.news_id",min_value=1)
-    viewTime = serializers.DateTimeField()
-
-
+    newsId = serializers.IntegerField(source="news_id", min_value=1)
 
 
 class HistoryNewsItemSerializer(serializers.ModelSerializer):
@@ -79,30 +54,14 @@ class HistoryNewsItemSerializer(serializers.ModelSerializer):
 
 
 class HistoryListQuerySerializer(serializers.Serializer):
-    """
-    浏览历史列表接口的查询参数。
-
-    需要字段：
-    - page: int，页码，从 1 开始。
-    - pageSize: int，每页数量。
-    """
-    page = serializers.IntegerField(min_value=1)
-    pageSize = serializers.IntegerField(source="page_size",required=False,min_value=1,max_value=100)
-
-
-
-class HistoryListResponseSerializer(serializers.Serializer):
-    """
-    浏览历史列表接口的响应数据。
-
-    需要字段：
-    - list: list[HistoryNewsItemSerializer]，历史记录列表数据。
-    - total: int，历史记录总数。
-    - hasMore: bool，是否还有下一页。
-    """
-    list = HistoryNewsItemSerializer(many=True)
-    total = serializers.IntegerField()
-    hasMore = serializers.BooleanField()
+    page = serializers.IntegerField(required=False, min_value=1, default=1)
+    pageSize = serializers.IntegerField(
+        source="page_size",
+        required=False,
+        min_value=1,
+        max_value=100,
+        default=10,
+    )
 
 
 

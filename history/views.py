@@ -1,123 +1,74 @@
-from rest_framework.views import APIView
-from utils.response import success_response
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
-from utils.authentication import BearerTokenAuthentication
-from .models import History
-from .services import (
-    add_history,
-    list_histories,
-    delete_history,
-    clear_history
-)
+from rest_framework.views import APIView
+
 from news.services import get_news_detail
-from .serializers import (
-    HistoryAddSerializer,
-    HistoryRecordSerializer,
-    HistoryNewsItemSerializer,
-    HistoryListResponseSerializer,
-    HistoryListQuerySerializer
+from utils.authentication import BearerTokenAuthentication
+from utils.response import success_response
+
+from .assemblers import (
+    build_history_clear_response,
+    build_history_list_response,
+    build_history_record,
 )
-
-
-
-
+from .serializers import HistoryAddSerializer, HistoryListQuerySerializer
+from .services import add_history, clear_history, delete_history, list_histories
 
 
 class HistoryAddAPIView(APIView):
-    """
-    处理新增浏览历史接口。
-
-    需要完成的功能：
-    - 接收当前登录用户和请求体 `newsId:int`。
-    - 校验新闻是否存在。
-    - 调用历史记录逻辑，完成新增或更新时间。
-    - 返回历史记录基础信息。
-    """
     permission_classes = [IsAuthenticated]
     authentication_classes = [BearerTokenAuthentication]
 
-    def post(self,request):
+    def post(self, request):
         serializer = HistoryAddSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         news_id = serializer.validated_data["news_id"]
         news = get_news_detail(news_id=news_id)
+        if news is None:
+            raise NotFound("not found")
 
-        history = add_history(user=request.user,news=news)
-
-        resp_data = {
-            "id":history.pk,
-            "userId":request.user.pk,
-            "newsId":news.pk,
-            "viewTime":history.view_time
-        }
-        resp_serializer = HistoryRecordSerializer(data=resp_data)
-
-        return success_response(data=resp_serializer.data)
-
+        history = add_history(user=request.user, news=news)
+        return success_response(data=build_history_record(history=history))
 
 
 class HistoryListAPIView(APIView):
-    """
-    处理浏览历史列表接口。
-
-    需要完成的功能：
-    - 接收当前登录用户以及分页参数 `page:int`、`pageSize:int`。
-    - 分页查询历史记录，并关联新闻详情字段。
-    - 计算 `total` 和 `hasMore`。
-    - 返回历史记录分页数据。
-    """
     permission_classes = [IsAuthenticated]
     authentication_classes = [BearerTokenAuthentication]
 
-    def get(self,request):
-        queryset_serializer = HistoryListQuerySerializer(data=request.params)
-        queryset_serializer.is_valid(raise_exception=True)
+    def get(self, request):
+        query_serializer = HistoryListQuerySerializer(data=request.query_params)
+        query_serializer.is_valid(raise_exception=True)
 
-        page = queryset_serializer.validated_data["page"]
-        page_size = queryset_serializer.validated_data["pageSize"]
+        page = query_serializer.validated_data["page"]
+        page_size = query_serializer.validated_data["page_size"]
+        histories, total = list_histories(user=request.user, page=page, page_size=page_size)
 
-        histories,total = list_histories(user=request.user,page=page,page_size=page_size)
-        items_serializer = HistoryNewsItemSerializer(data=histories, many=True)
-
-        has_more = page * page_size < total
-        resp_data = {
-            "list":items_serializer.data,
-            "total":total,
-            "hasMore":has_more
-        }
-
-        resp_serializer = HistoryListResponseSerializer(data=resp_data)
-
-        return success_response(data=resp_serializer.data)
-
-
-
-
-
-
-
-
+        return success_response(
+            data=build_history_list_response(
+                histories=histories,
+                total=total,
+                page=page,
+                page_size=page_size,
+            )
+        )
 
 
 class HistoryDeleteAPIView(APIView):
-    """
-    处理删除单条浏览历史接口。
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BearerTokenAuthentication]
 
-    需要完成的功能：
-    - 接收当前登录用户和路径参数 `history_id:int`。
-    - 删除属于当前用户的指定历史记录。
-    - 当历史记录不存在时返回 404。
-    - 删除成功后返回统一成功响应。
-    """
+    def delete(self, request, history_id):
+        deleted = delete_history(user=request.user, history_id=history_id)
+        if not deleted:
+            raise NotFound("not found")
+        return success_response()
 
 
 class HistoryClearAPIView(APIView):
-    """
-    处理清空浏览历史接口。
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BearerTokenAuthentication]
 
-    需要完成的功能：
-    - 接收当前登录用户。
-    - 删除该用户全部历史记录。
-    - 返回清空成功的统一响应。
-    """
+    def delete(self, request):
+        deleted_count = clear_history(user=request.user)
+        return success_response(data=build_history_clear_response(deleted_count=deleted_count))

@@ -1,54 +1,35 @@
+from django.db import transaction
+
+from favorite.models import Favorite
+
+
+
 def is_favorite(*, user, news):
-    """
-    根据当前登录用户和新闻对象判断是否存在收藏记录。
-
-    需要完成的功能：
-    - 接收用户和新闻对象。
-    - 查询当前用户是否收藏过该新闻。
-    - 返回布尔值结果。
-    """
+    return Favorite.objects.filter(user=user, news=news).exists()
 
 
+@transaction.atomic
 def add_favorite(*, user, news):
-    """
-    为当前用户新增一条收藏记录。
+    favorite, _ = Favorite.objects.get_or_create(user=user, news=news)
+    return favorite
 
-    需要完成的功能：
-    - 接收用户和新闻对象。
-    - 如果收藏记录已存在，直接返回已有记录。
-    - 如果不存在，则创建收藏记录并返回创建后的记录。
-    """
 
 
 def remove_favorite(*, user, news):
-    """
-    删除当前用户对指定新闻的收藏记录。
+    deleted_count, _ = Favorite.objects.filter(user=user, news=news).delete()
+    return deleted_count > 0
 
-    需要完成的功能：
-    - 接收用户和新闻对象。
-    - 删除匹配的收藏记录。
-    - 返回是否删除成功。
-    """
 
 
 def list_favorites(*, user, page=1, page_size=10):
-    """
-    分页获取当前用户的收藏列表。
+    offset = (page - 1) * page_size
+    queryset = Favorite.objects.filter(user=user).select_related("news").order_by("-created_at", "-id")
+    favorites = list(queryset[offset:offset + page_size])
+    total = queryset.count()
+    return favorites, total
 
-    需要完成的功能：
-    - 接收用户、页码和分页大小。
-    - 按收藏时间倒序查询收藏记录。
-    - 关联新闻信息并组装列表数据。
-    - 返回当前页数据和收藏总数。
-    """
 
 
 def clear_favorites(*, user):
-    """
-    清空当前用户的全部收藏记录。
-
-    需要完成的功能：
-    - 接收当前用户。
-    - 删除该用户全部收藏数据。
-    - 返回被删除的记录数量。
-    """
+    deleted_count, _ = Favorite.objects.filter(user=user).delete()
+    return deleted_count

@@ -1,88 +1,54 @@
 from rest_framework import serializers
 
+from favorite.models import Favorite
+
 
 class FavoriteCheckQuerySerializer(serializers.Serializer):
-    """
-    收藏检查接口的查询参数。
-
-    需要字段：
-    - newsId: int，新闻主键 ID。
-    """
+    newsId = serializers.IntegerField(source="news_id", min_value=1)
 
 
 class FavoriteRemoveQuerySerializer(serializers.Serializer):
-    """
-    取消收藏接口的查询参数。
-
-    需要字段：
-    - newsId: int，新闻主键 ID。
-    """
+    newsId = serializers.IntegerField(source="news_id", min_value=1)
 
 
 class FavoriteAddSerializer(serializers.Serializer):
-    """
-    添加收藏接口的请求体。
-
-    需要字段：
-    - newsId: int，新闻主键 ID。
-    """
+    newsId = serializers.IntegerField(source="news_id", min_value=1)
 
 
-class FavoriteCheckResponseSerializer(serializers.Serializer):
-    """
-    收藏检查接口的响应数据。
+class FavoriteNewsItemSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="news_id")
+    title = serializers.CharField(source="news.title")
+    description = serializers.CharField(source="news.description", allow_null=True, required=False)
+    image = serializers.CharField(source="news.image", allow_null=True, required=False)
+    author = serializers.CharField(source="news.author", allow_null=True, required=False)
+    categoryId = serializers.IntegerField(source="news.category_id")
+    views = serializers.IntegerField(source="news.views")
+    publishTime = serializers.DateTimeField(source="news.publish_time")
+    favoriteId = serializers.IntegerField(source="id")
+    favoriteTime = serializers.DateTimeField(source="created_at")
 
-    需要字段：
-    - isFavorite: bool，当前用户是否已收藏该新闻。
-    """
-
-
-class FavoriteRecordSerializer(serializers.Serializer):
-    """
-    收藏记录基础信息。
-
-    需要字段：
-    - id: int，收藏记录 ID。
-    - userId: int，用户 ID。
-    - newsId: int，新闻 ID。
-    - createdAt: datetime，收藏创建时间。
-    """
-
-
-class FavoriteNewsItemSerializer(serializers.Serializer):
-    """
-    收藏列表中的新闻项数据。
-
-    需要字段：
-    - id: int，新闻 ID。
-    - title: str，新闻标题。
-    - description: str | None，新闻简介。
-    - image: str | None，新闻封面图片地址。
-    - author: str | None，新闻作者。
-    - categoryId: int，新闻分类 ID。
-    - views: int，新闻浏览量。
-    - publishTime: datetime，新闻发布时间。
-    - favoriteId: int，收藏记录 ID。
-    - favoriteTime: datetime，收藏时间。
-    """
+    class Meta:
+        model = Favorite
+        fields = [
+            "id",
+            "title",
+            "description",
+            "image",
+            "author",
+            "categoryId",
+            "views",
+            "publishTime",
+            "favoriteId",
+            "favoriteTime",
+        ]
 
 
 class FavoriteListQuerySerializer(serializers.Serializer):
-    """
-    收藏列表接口的查询参数。
-
-    需要字段：
-    - page: int，页码，从 1 开始。
-    - pageSize: int，每页数量。
-    """
-
-
-class FavoriteListResponseSerializer(serializers.Serializer):
-    """
-    收藏列表接口的响应数据。
-
-    需要字段：
-    - list: list[FavoriteNewsItemSerializer]，收藏列表数据。
-    - total: int，收藏总数。
-    - hasMore: bool，是否还有下一页。
-    """
+    page = serializers.IntegerField(required=False, min_value=1, default=1)
+    pageSize = serializers.IntegerField(
+        source="page_size",
+        required=False,
+        min_value=1,
+        max_value=100,
+        default=10,
+    )
