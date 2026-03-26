@@ -90,7 +90,7 @@ class UserUpdateAPIView(APIView):
 
     def put(self,request):
         current_user = request.user
-        serializer = UserUpdateSerializer(data=request.data)
+        serializer = UserUpdateSerializer(data=current_user)
         serializer.is_valid(raise_exception=True)
 
         user = update_user(user=current_user,validated_data=serializer.validated_data)

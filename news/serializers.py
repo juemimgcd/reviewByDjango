@@ -16,6 +16,25 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "sortOrder"]
 
 
+
+class NewsBaseSerializer(serializers.ModelSerializer):
+    categoryId = serializers.IntegerField(source="category_id")
+    publishTime = serializers.DateTimeField(source="publish_time")
+
+    class Meta:
+        model = News
+        fields = [
+            "id",
+            "title",
+            "description",
+            "image",
+            "author",
+            "categoryId",
+            "views",
+            "publishTime",
+        ]
+
+
 class NewsListQuerySerializer(serializers.Serializer):
     categoryId = serializers.IntegerField(source="category_id", min_value=1)
     page = serializers.IntegerField(required=False, min_value=1, default=1)
@@ -23,65 +42,18 @@ class NewsListQuerySerializer(serializers.Serializer):
 
 
 
-class NewsListSerializer(serializers.ModelSerializer):
-    categoryId = serializers.IntegerField(source="category_id")
-    publishTime = serializers.DateTimeField(source="publish_time")
-
-    class Meta:
-        model = News
-        fields = [
-            "id",
-            "title",
-            "description",
-            "image",
-            "author",
-            "categoryId",
-            "views",
-            "publishTime",
-        ]
-
-
+class NewsListSerializer(NewsBaseSerializer):
+    pass
 
 
 class NewsDetailQuerySerializer(serializers.Serializer):
     id = serializers.IntegerField(source="news_id", min_value=1)
 
 
-
-class NewsDetailSerializer(serializers.ModelSerializer):
-    categoryId = serializers.IntegerField(source="category_id")
-    publishTime = serializers.DateTimeField(source="publish_time")
-
-    class Meta:
-        model = News
-        fields = [
-            "id",
-            "title",
-            "description",
-            "content",
-            "image",
-            "author",
-            "categoryId",
-            "views",
-            "publishTime",
-        ]
+class NewsDetailSerializer(NewsBaseSerializer):
+    pass
 
 
-
-class RelatedNewsSerializer(serializers.ModelSerializer):
-    categoryId = serializers.IntegerField(source="category_id")
-    publishTime = serializers.DateTimeField(source="publish_time")
-
-    class Meta:
-        model = News
-        fields = [
-            "id",
-            "title",
-            "description",
-            "image",
-            "author",
-            "categoryId",
-            "views",
-            "publishTime",
-        ]
+class RelatedNewsSerializer(NewsBaseSerializer):
+    pass
 
