@@ -1,3 +1,5 @@
+from typing import Optional, Tuple
+
 from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.exceptions import AuthenticationFailed
@@ -9,7 +11,7 @@ from users.models import User, UserToken
 class BearerTokenAuthentication(BaseAuthentication):
     keyword: str = "Bearer"
 
-    def authenticate(self, request: Request) -> tuple[User, UserToken] | None:
+    def authenticate(self, request: Request) -> Optional[Tuple[User, UserToken]]:
         auth = get_authorization_header(request).split()
         if not auth:
             return None

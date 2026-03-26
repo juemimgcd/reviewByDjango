@@ -5,11 +5,11 @@ from utils.response import success_response
 
 from .serializers import (
     CategoryQuerySerializer,
-    CategorySerializer,
+    CategoryResponseSerializer,
     NewsDetailQuerySerializer,
-    NewsDetailSerializer,
+    NewsDetailResponseSerializer,
     NewsListQuerySerializer,
-    NewsListSerializer,
+    NewsListResponseSerializer,
     RelatedNewsSerializer,
 )
 from .services import (
@@ -31,7 +31,7 @@ class CategoryAPIView(APIView):
         query_serializer.is_valid(raise_exception=True)
 
         categories = list_categories(**query_serializer.validated_data)
-        serializer = CategorySerializer(categories, many=True)
+        serializer = CategoryResponseSerializer(categories, many=True)
         return success_response(data=serializer.data)
 
 
@@ -47,18 +47,11 @@ class NewsListAPIView(APIView):
 
         news_items = list_news(category_id=category_id, skip=offset, limit=page_size)
         total = get_news_total(category_id=category_id)
-        has_more = (offset + len(news_items)) < (total or 0)
 
-        serializer = NewsListSerializer(news_items, many=True)
+        resp_serializer = NewsListResponseSerializer({"list": news_items, "total": total or 0})
 
-        data = {
-            "items": serializer.data,
-            "total": total or 0,
-            "page": page,
-            "pageSize": page_size,
-            "hasMore": has_more,
-        }
-        return success_response(data=data)
+        resp_data = resp_serializer.data
+        return success_response(data=resp_data)
 
 
 
@@ -78,7 +71,7 @@ class NewsDetailAPIView(APIView):
 
         return success_response(
             data={
-                "detail": NewsDetailSerializer(detail).data,
+                "detail": NewsDetailResponseSerializer(detail).data,
                 "related": RelatedNewsSerializer(related, many=True).data,
             }
         )

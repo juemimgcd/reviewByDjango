@@ -8,7 +8,7 @@ class CategoryQuerySerializer(serializers.Serializer):
 
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategoryResponseSerializer(serializers.ModelSerializer):
     sortOrder = serializers.IntegerField(source="sort_order")
 
     class Meta:
@@ -42,15 +42,17 @@ class NewsListQuerySerializer(serializers.Serializer):
 
 
 
-class NewsListSerializer(NewsBaseSerializer):
-    pass
+class NewsListResponseSerializer(serializers.Serializer):
+    list = NewsBaseSerializer(many=True)
+    total = serializers.IntegerField()
+
 
 
 class NewsDetailQuerySerializer(serializers.Serializer):
     id = serializers.IntegerField(source="news_id", min_value=1)
 
 
-class NewsDetailSerializer(NewsBaseSerializer):
+class NewsDetailResponseSerializer(NewsBaseSerializer):
     pass
 
 

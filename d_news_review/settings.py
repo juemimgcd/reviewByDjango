@@ -53,7 +53,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'news',
-    'users'
+    'users',
+    'favorite',
+    'history',
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -138,3 +140,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

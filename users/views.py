@@ -1,14 +1,10 @@
-from django.shortcuts import render
 
-from typing import cast
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.request import Request
-from rest_framework.response import Response
+
 from rest_framework.views import APIView
 from utils.authentication import BearerTokenAuthentication
 from utils.response import success_response
-from .models import User
 from .serializers import (
     UserAuthResponseSerializer,
     UserChangePasswordSerializer,

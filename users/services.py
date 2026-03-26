@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 
@@ -31,7 +31,7 @@ def authenticated_user(username:str,password:str):
 
 @transaction.atomic
 def create_token(user:User):
-    expire_at = datetime.now() + timedelta(days=7)
+    expire_at = timezone.now() + timedelta(days=7)
 
     user_token = UserToken.objects.filter(user=user).first()
 
@@ -41,7 +41,7 @@ def create_token(user:User):
         user_token.expires_at = expire_at
         user_token.save()
     else:
-        user_token = UserToken(user=user,token=token,expires_at=expire_at)
+        user_token = UserToken.objects.create(user=user,token=token,expires_at=expire_at)
 
     return user_token
 
